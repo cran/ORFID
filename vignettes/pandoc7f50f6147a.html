@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<meta name="author" content="Hugo Marques and Annika Putt" />
+
+<meta name="date" content="2022-09-05" />
+
+<title>Introduction to ORFID</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+
+
+<style type="text/css">
+  code {
+    white-space: pre;
+  }
+  .sourceCode {
+    overflow: visible;
+  }
+</style>
+<style type="text/css" data-origin="pandoc">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Introduction to ORFID</h1>
+<h4 class="author">Hugo Marques and Annika Putt</h4>
+<h4 class="date">2022-09-05</h4>
+
+
+
+<div id="overview" class="section level2">
+<h2>Overview</h2>
+<p>ORFID is a package for compiling and summarizing passive integrated
+transponder (PIT) data collected using Oregon RFID OMRM and OSRS antenna
+readers.</p>
+</div>
+<div id="installation" class="section level2">
+<h2>Installation</h2>
+<p>ORFID is currently available as a development package on Github:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>devtools<span class="sc">::</span><span class="fu">install_github</span>(<span class="st">&quot;hugo-marques/ORFID&quot;</span>)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; dplyr (1.0.9 -&gt; 1.0.10) [CRAN]</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; * checking for file &#39;C:\Users\ap_an\AppData\Local\Temp\RtmpyoTAPT\remotes7f50fd83d9b\hugo-marques-ORFID-dd006d9/DESCRIPTION&#39; ... OK</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; * preparing &#39;ORFID&#39;:</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; * checking DESCRIPTION meta-information ... OK</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; * checking for LF line-endings in source and make files and shell scripts</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; * checking for empty or unneeded directories</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; * building &#39;ORFID_1.0.2.tar.gz&#39;</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ORFID)</span></code></pre></div>
+</div>
+<div id="view-field-names" class="section level2">
+<h2>View field names</h2>
+<p>The output from Oregon RFID antenna readers is highly customizable.
+Available data fields and their descriptions can be viewed using:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">field_names</span>()</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;    Name                                                        Details</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1   DTY Detection type, S = summary, I = individual, E = event        </span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 2   TCH Tag technology HDX, FDX, HF                                   </span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 3   TTY Tag type A = Animal, R = Read only, W = Writeable, P = Phantom</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 4   TAG Tag ID number                                                 </span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 5   ANT Antenna number                                                </span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 6   ARR Arrival date and time                                         </span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 7   TRF Time reference G = GNSS, N = network, U = unreferenced        </span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 8   DEP Departure date and time                                       </span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 9   SSN Starting scan number (since midnight)                         </span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 10  ESN Ending scan number                                            </span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 11  NCD Number of consecutive detections                              </span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 12  EMP Number of empty scans preceding detection                     </span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 13  LAT Latitude                                                      </span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 14  LON Longitude                                                     </span></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 15  ALT Altitude meters                                               </span></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 16  SIV Satellites in view                                            </span></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 17  HDP Location horizontal accuracy (m)                              </span></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 18  TSS Tag signal strength                                           </span></span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 19  CPA Charge pulse amps                                             </span></span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 20  LSA Listen amps                                                   </span></span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 21  EFA Effective amps                                                </span></span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 22  CPT Charge pulse time                                             </span></span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 23  LST Listen time                                                   </span></span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 24  ANV Antenna voltage                                               </span></span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 25  ANA Antenna amperage                                              </span></span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 26  NOI Noise                                                         </span></span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 27  DUR Duration                                                      </span></span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 28  CLS Tag class                                                     </span></span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 29  SPC Output one space character                                    </span></span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 30  SCD Site code</span></span></code></pre></div>
+</div>
+<div id="loading-the-data" class="section level2">
+<h2>Loading the data</h2>
+<p>ORFID requires input data in raw format downloaded directly from
+Oregon RFID OMRM and OSRS antenna readers. Data files must be delimited
+by tab, comma, or semicolon; space delimited data are not supported.</p>
+<p>Data are loaded using one of three import functions:</p>
+<ul>
+<li><code>import_ORFID</code>: Imports detection records from OMRM and
+OSRS antenna readers</li>
+<li><code>import_ORFID_events</code>: Imports event data from OMRM and
+OSRS antenna readers</li>
+<li><code>import_old_readers</code>: Imports detection data from
+previous generations of Oregon RFID antenna readers</li>
+</ul>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>dat <span class="ot">&lt;-</span> <span class="fu">import_ORFID</span>(<span class="at">file =</span> <span class="st">&quot;~/reader_1.txt&quot;</span>, <span class="at">delim =</span> <span class="st">&quot;</span><span class="sc">\t</span><span class="st">&quot;</span>)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>events <span class="ot">&lt;-</span> <span class="fu">import_ORFID_events</span>(<span class="at">file =</span> <span class="st">&quot;~/reader_1.txt&quot;</span>, <span class="at">delim =</span> <span class="st">&quot;</span><span class="sc">\t</span><span class="st">&quot;</span>)</span></code></pre></div>
+</div>
+<div id="joining-data-into-arrays" class="section level2">
+<h2>Joining data into arrays</h2>
+<p>Multiple data files can be combined into an array representing all
+antennas within a designated study region. Individual files are combined
+into a list and joined using <code>join_multireader_data</code>. A new
+data field is created, <code>LOC</code>, which combines the site code
+(<code>SCD</code>) and antenna number (<code>ANT</code>) into a unique
+location variable.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>reader_1 <span class="ot">&lt;-</span> <span class="fu">import_ORFID</span>(<span class="at">file =</span> <span class="st">&quot;reader_1.txt&quot;</span>, <span class="at">delim =</span> <span class="st">&quot;</span><span class="sc">\t</span><span class="st">&quot;</span>)</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>reader_2 <span class="ot">&lt;-</span> <span class="fu">import_ORFID</span>(<span class="at">file =</span> <span class="st">&quot;reader_2.txt&quot;</span>, <span class="at">delim =</span> <span class="st">&quot;</span><span class="sc">\t</span><span class="st">&quot;</span>)</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>reader_3 <span class="ot">&lt;-</span> <span class="fu">import_ORFID</span>(<span class="at">file =</span> <span class="st">&quot;reader_3.txt&quot;</span>, <span class="at">delim =</span> <span class="st">&quot;</span><span class="sc">\t</span><span class="st">&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>dat_multi <span class="ot">&lt;-</span> <span class="fu">join_multireader_data</span>(<span class="at">x =</span> <span class="fu">list</span>(reader_1, reader_2, reader_3))</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; A unique variable, LOC (location), was created by combining SCD (site code) and ANT (antenna).</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Rows: 10,077</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Columns: 11</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ DTY &lt;chr&gt; &quot;S&quot;, &quot;S&quot;, &quot;S&quot;, &quot;S&quot;, &quot;S&quot;, &quot;S&quot;, &quot;S&quot;, &quot;S&quot;, &quot;S&quot;, &quot;S&quot;, &quot;S&quot;, &quot;S&quot;, &quot;S&quot;, &quot;…</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ ARR &lt;dttm&gt; 2019-05-16 22:34:55, 2019-05-16 22:34:58, 2019-05-16 22:35:01, 20…</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ TRF &lt;chr&gt; &quot;G&quot;, &quot;G&quot;, &quot;G&quot;, &quot;G&quot;, &quot;G&quot;, &quot;G&quot;, &quot;G&quot;, &quot;G&quot;, &quot;G&quot;, &quot;G&quot;, &quot;G&quot;, &quot;G&quot;, &quot;G&quot;, &quot;…</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ DUR &lt;drtn&gt; 0 secs, 0 secs, 0 secs, 0 secs, 0 secs, 0 secs, 0 secs, 0 secs, 0…</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ TTY &lt;chr&gt; &quot;W&quot;, &quot;W&quot;, &quot;W&quot;, &quot;W&quot;, &quot;W&quot;, &quot;W&quot;, &quot;W&quot;, &quot;W&quot;, &quot;W&quot;, &quot;W&quot;, &quot;W&quot;, &quot;W&quot;, &quot;W&quot;, &quot;…</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ TAG &lt;chr&gt; &quot;0000_000000005189&quot;, &quot;0000_000000005189&quot;, &quot;0000_000000005189&quot;, &quot;00…</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ SCD &lt;fct&gt; USA, USA, USA, USA, USA, USA, USA, USA, USA, USA, USA, USA, USA, U…</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ NCD &lt;dbl&gt; 2, 2, 2, 3, 3, 3, 2, 2, 2, 2, 2, 3, 3, 3, 2, 1, 2, 2, 2, 1, 2, 2, …</span></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ EFA &lt;dbl&gt; 0.8, 0.7, 0.7, 0.7, 0.7, 0.7, 0.7, 0.7, 0.7, 0.8, 0.8, 0.7, 0.7, 0…</span></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ ANT &lt;fct&gt; A1, A1, A1, A1, A1, A1, A1, A1, A1, A1, A1, A1, A1, A1, A1, A1, A1…</span></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ LOC &lt;fct&gt; USA_A1, USA_A1, USA_A1, USA_A1, USA_A1, USA_A1, USA_A1, USA_A1, US…</span></span></code></pre></div>
+</div>
+<div id="summarize-data" class="section level2">
+<h2>Summarize data</h2>
+<p>Data from <code>import_ORFID</code> or
+<code>join_multireader_data</code> can be summarized to view site
+information and tag detections:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">site_summary</span>(dat_multi)</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; # A tibble: 3 × 5</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; # Groups:   LOC [3]</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   LOC      REC TAG_ID FIR                 LAS                </span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   &lt;fct&gt;  &lt;int&gt;  &lt;int&gt; &lt;dttm&gt;              &lt;dttm&gt;             </span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1 USA_A1  8590      7 2019-05-16 22:34:55 2019-05-17 04:59:13</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 2 BRA_A1   460      6 2019-05-17 04:50:52 2019-05-17 19:24:12</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 3 TES_A1  1027      6 2019-10-31 09:45:56 2019-11-01 08:03:26</span></span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tag_summary</span>(dat_multi)</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;         TAG: tag ID number</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;         TTY: tag type (A = Animal (ICAR), R = Read-only, W = Writable, P = Phantom)</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;         REC: number of detection records</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;         FIR: first detection record</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;         LAS: last detection record</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;         mean_DUR: mean detection duration</span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;         first_LOC: location of first detection </span></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;         last_LOC: location of last detection</span></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;         count_LOC: number of antennas that detected the tag</span></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;         all_LOC: character string of all antennas that detected the tag</span></span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; # A tibble: 13 × 10</span></span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;    TAG                 TTY     REC FIR                 LAS                </span></span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;    &lt;chr&gt;               &lt;chr&gt; &lt;int&gt; &lt;dttm&gt;              &lt;dttm&gt;             </span></span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  1 &quot;0000_000000005189&quot; W      6408 2019-05-16 22:34:55 2019-05-17 19:23:39</span></span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  2 &quot;0000_247618116254&quot; P      1063 2019-05-16 22:35:38 2019-05-17 02:49:55</span></span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  3 &quot;900_228000004988&quot;  A       361 2019-05-16 23:00:02 2019-05-17 04:57:35</span></span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  4 &quot;900_228000004996&quot;  A         8 2019-05-17 02:49:58 2019-05-17 04:55:59</span></span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  5 &quot;900_228000004991&quot;  A         7 2019-05-17 02:50:27 2019-05-17 04:55:46</span></span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  6 &quot;0000_000000005972&quot; W      1192 2019-05-17 02:53:47 2019-05-17 19:24:12</span></span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  7 &quot;900_230000087400&quot;  A        11 2019-05-17 04:51:22 2019-05-17 04:59:13</span></span>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  8 &quot;0000_000000004978&quot; W      1019 2019-10-31 09:45:56 2019-11-01 08:03:26</span></span>
+<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  9 &quot;0000_000000002489&quot; W         2 2019-10-31 13:13:02 2019-10-31 22:58:45</span></span>
+<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 10 &quot;0671_338237264481&quot; W         1 2019-10-31 15:05:37 2019-10-31 15:05:37</span></span>
+<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 11 &quot;  0_000000002489&quot;  A         3 2019-10-31 19:33:51 2019-11-01 04:55:33</span></span>
+<span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 12 &quot;1209_450359747569&quot; W         1 2019-10-31 23:34:07 2019-10-31 23:34:07</span></span>
+<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 13 &quot;2032_350284139216&quot; W         1 2019-11-01 00:17:11 2019-11-01 00:17:11</span></span>
+<span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;    mean_DUR first_LOC last_LOC count_LOC all_LOC       </span></span>
+<span id="cb7-31"><a href="#cb7-31" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;    &lt;drtn&gt;   &lt;fct&gt;     &lt;fct&gt;        &lt;int&gt; &lt;chr&gt;         </span></span>
+<span id="cb7-32"><a href="#cb7-32" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  1 0.0 secs USA_A1    BRA_A1           2 USA_A1, BRA_A1</span></span>
+<span id="cb7-33"><a href="#cb7-33" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  2 0.0 secs USA_A1    USA_A1           1 USA_A1        </span></span>
+<span id="cb7-34"><a href="#cb7-34" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  3 0.7 secs USA_A1    USA_A1           2 USA_A1, BRA_A1</span></span>
+<span id="cb7-35"><a href="#cb7-35" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  4 1.4 secs USA_A1    USA_A1           2 USA_A1, BRA_A1</span></span>
+<span id="cb7-36"><a href="#cb7-36" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  5 1.1 secs USA_A1    USA_A1           2 USA_A1, BRA_A1</span></span>
+<span id="cb7-37"><a href="#cb7-37" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  6 0.0 secs USA_A1    BRA_A1           2 USA_A1, BRA_A1</span></span>
+<span id="cb7-38"><a href="#cb7-38" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  7 1.5 secs BRA_A1    USA_A1           2 BRA_A1, USA_A1</span></span>
+<span id="cb7-39"><a href="#cb7-39" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  8 0.0 secs TES_A1    TES_A1           1 TES_A1        </span></span>
+<span id="cb7-40"><a href="#cb7-40" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  9 0.0 secs TES_A1    TES_A1           1 TES_A1        </span></span>
+<span id="cb7-41"><a href="#cb7-41" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 10 0.0 secs TES_A1    TES_A1           1 TES_A1        </span></span>
+<span id="cb7-42"><a href="#cb7-42" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 11 0.0 secs TES_A1    TES_A1           1 TES_A1        </span></span>
+<span id="cb7-43"><a href="#cb7-43" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 12 0.0 secs TES_A1    TES_A1           1 TES_A1        </span></span>
+<span id="cb7-44"><a href="#cb7-44" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 13 0.0 secs TES_A1    TES_A1           1 TES_A1</span></span></code></pre></div>
+</div>
+<div id="view-marker-tag-data" class="section level2">
+<h2>View marker tag data</h2>
+<p>Marker tags are stationary tags used to constantly monitor the
+effectiveness of Oregon RFID antenna readers. Data from individual
+marker tags can be viewed and plotted using ORFID marker tag
+functions.</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">marker_tag</span>(dat_multi, <span class="st">&quot;0000_000000005972&quot;</span>)</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; # A tibble: 1,192 × 5</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;    TAG               ARR                 DUR    GAP        NCD</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;    &lt;chr&gt;             &lt;dttm&gt;              &lt;drtn&gt; &lt;drtn&gt;   &lt;dbl&gt;</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  1 0000_000000005972 2019-05-17 02:53:47 0 secs  NA secs     2</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  2 0000_000000005972 2019-05-17 02:53:50 0 secs 3.0 secs     2</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  3 0000_000000005972 2019-05-17 02:53:53 0 secs 3.0 secs     2</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  4 0000_000000005972 2019-05-17 02:53:56 0 secs 3.0 secs     2</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  5 0000_000000005972 2019-05-17 02:53:59 0 secs 2.9 secs     3</span></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  6 0000_000000005972 2019-05-17 02:54:02 0 secs 3.0 secs     3</span></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  7 0000_000000005972 2019-05-17 02:54:05 0 secs 3.0 secs     3</span></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  8 0000_000000005972 2019-05-17 02:54:08 0 secs 3.0 secs     2</span></span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  9 0000_000000005972 2019-05-17 02:54:11 0 secs 3.0 secs     2</span></span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 10 0000_000000005972 2019-05-17 02:54:14 0 secs 3.0 secs     2</span></span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; # … with 1,182 more rows</span></span></code></pre></div>
+<p>If the a minimum time gap (in seconds) is specified using the gap
+argument, only detection periods where the time gap between detections
+was greater than the specified minimum are retained in the summary
+table.</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">marker_tag</span>(dat_multi, <span class="st">&quot;0000_000000005972&quot;</span>, <span class="at">gap =</span> <span class="dv">600</span>)</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; # A tibble: 2 × 5</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   TAG               ARR                 DUR    GAP           NCD</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt;             &lt;dttm&gt;              &lt;drtn&gt; &lt;drtn&gt;      &lt;dbl&gt;</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1 0000_000000005972 2019-05-17 04:50:52 0 secs 3754.3 secs     4</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 2 0000_000000005972 2019-05-17 05:19:38 0 secs 1370.0 secs     3</span></span></code></pre></div>
+<p>In the marker tag plot, gaps between detections greater than the
+specified minimum are highlighted in red.</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">marker_tag_plot</span>(dat_multi, <span class="st">&quot;0000_000000005972&quot;</span>, <span class="at">gap =</span> <span class="dv">600</span>)</span></code></pre></div>
+<p><img src="data:image/png;base64,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" /><!-- --></p>
+</div>
+<div id="summarize-directional-data" class="section level2">
+<h2>Summarize directional data</h2>
+<p>PIT antennas are sometimes deployed along a linear migration route to
+monitor the directional movement of tagged individuals. ORFID has
+several functions that can be used to summarize directional data.</p>
+<p><code>tag_direction</code> is used to determine the direction of
+movement whenever an individual is detected at a new/subsequent antenna.
+The function requires a vector describing the order of locations an
+individual encounters as it travels along a directional gradient (e.g.,
+from downstream to upstream). The column, <code>DIR</code>, is created,
+where <em>U</em> and <em>D</em> designate upstream and downstream
+movements, respectively, and <em>S</em> designates a consecutive
+detection at the same antenna.</p>
+<p>For example, a study array is composed of two antennas,
+<em>downstream_A1</em> and <em>upstream_A1</em>, and animals move in an
+upstream direction (i.e., passing over the downstream antenna, then the
+upstream antenna).</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>dat_multi <span class="ot">&lt;-</span> <span class="fu">join_multireader_data</span>(<span class="fu">list</span>(reader_us, reader_ds), <span class="at">verbose =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; A unique variable, LOC (location), was created by combining SCD (site code) and ANT (antenna).</span></span></code></pre></div>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tag_direction</span>(dat_multi, <span class="at">LOC_vec =</span> <span class="fu">c</span>(<span class="st">&quot;downstream_A1&quot;</span>, <span class="st">&quot;upstream_A1&quot;</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(TAG <span class="sc">==</span> <span class="st">&quot;900_228000369764&quot;</span>)</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; # A tibble: 8 × 19</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   LOC           LOC_NUM DTY   ARR                 TRF   DUR    TTY  </span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt;           &lt;dbl&gt; &lt;chr&gt; &lt;dttm&gt;              &lt;chr&gt; &lt;drtn&gt; &lt;chr&gt;</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1 downstream_A1       1 S     2020-08-17 04:42:11 G     1 secs A    </span></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 2 downstream_A1       1 S     2020-08-17 04:42:16 G     0 secs A    </span></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 3 upstream_A1         2 S     2020-08-17 04:42:39 G     2 secs A    </span></span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 4 upstream_A1         2 S     2020-08-17 04:42:44 G     0 secs A    </span></span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 5 upstream_A1         2 S     2020-08-17 04:42:48 G     0 secs A    </span></span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 6 upstream_A1         2 S     2020-09-16 22:09:46 G     0 secs A    </span></span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 7 downstream_A1       1 S     2020-09-16 22:10:06 G     0 secs A    </span></span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 8 downstream_A1       1 S     2020-09-16 22:10:10 G     0 secs A    </span></span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   TAG              SCD          NCD   EFA TCH   ANT     EMP TSS       SPV   NOI</span></span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt;            &lt;fct&gt;      &lt;dbl&gt; &lt;dbl&gt; &lt;chr&gt; &lt;fct&gt; &lt;dbl&gt; &lt;chr&gt;   &lt;dbl&gt; &lt;dbl&gt;</span></span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1 900_228000369764 downstream    18   0.7 HDX   A1    65534 496/601 1265    332</span></span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 2 900_228000369764 downstream     9   0.6 HDX   A1       32 549/603 1266.   366</span></span>
+<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 3 900_228000369764 upstream      30   0.9 HDX   A1    65534 553/641 1274    356</span></span>
+<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 4 900_228000369764 upstream       1   0.8 HDX   A1       25 560/560 1274.   356</span></span>
+<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 5 900_228000369764 upstream      10   0.9 HDX   A1       35 572/632 1274    382</span></span>
+<span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 6 900_228000369764 upstream       6   0.9 HDX   A1    65534 605/616 1284.   386</span></span>
+<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 7 900_228000369764 downstream     5   0.7 HDX   A1    30366 600/601 1276.   361</span></span>
+<span id="cb12-23"><a href="#cb12-23" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 8 900_228000369764 downstream     1   0.7 HDX   A1       39 552/552 1278.   316</span></span>
+<span id="cb12-24"><a href="#cb12-24" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   CLS   DIR  </span></span>
+<span id="cb12-25"><a href="#cb12-25" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt; &lt;chr&gt;</span></span>
+<span id="cb12-26"><a href="#cb12-26" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1 &quot; B &quot; S    </span></span>
+<span id="cb12-27"><a href="#cb12-27" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 2 &quot; B &quot; S    </span></span>
+<span id="cb12-28"><a href="#cb12-28" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 3 &quot; B &quot; U    </span></span>
+<span id="cb12-29"><a href="#cb12-29" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 4 &quot; B &quot; S    </span></span>
+<span id="cb12-30"><a href="#cb12-30" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 5 &quot; B &quot; S    </span></span>
+<span id="cb12-31"><a href="#cb12-31" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 6 &quot; B &quot; S    </span></span>
+<span id="cb12-32"><a href="#cb12-32" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 7 &quot; B &quot; D    </span></span>
+<span id="cb12-33"><a href="#cb12-33" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 8 &quot; B &quot; S</span></span></code></pre></div>
+<p><code>direction_summary</code> can then be used to summarize the time
+difference between the first and last detections for each unique tag
+within the system. For example, this function can be used to determine
+residence time above or below an antenna.</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>dir <span class="ot">&lt;-</span> <span class="fu">tag_direction</span>(dat_multi, <span class="at">LOC_vec =</span> <span class="fu">c</span>(<span class="st">&quot;downstream_A1&quot;</span>, <span class="st">&quot;upstream_A1&quot;</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">direction_summary</span>(dir)</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; # A tibble: 55 × 9</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;    TAG                   first_DET           first_LOC     first_DIR</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;    &lt;chr&gt;                 &lt;dttm&gt;              &lt;chr&gt;         &lt;chr&gt;    </span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  1 900_230000009506      2020-07-09 19:33:18 upstream_A1   U        </span></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  2 900_226000980150      2020-08-10 16:05:03 downstream_A1 D        </span></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  3 900_226000584318      2020-08-11 11:45:02 upstream_A1   U        </span></span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  4 0000_0000000168273013 2020-08-11 13:35:25 upstream_A1   U        </span></span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  5 900_230000079824      2020-08-13 00:23:52 upstream_A1   U        </span></span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  6 900_228000586262      2020-08-13 03:03:13 upstream_A1   U        </span></span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  7 900_228000369675      2020-08-13 03:46:19 upstream_A1   U        </span></span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  8 900_228000586311      2020-08-15 21:43:42 upstream_A1   U        </span></span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  9 900_230000077653      2020-08-15 23:20:40 upstream_A1   U        </span></span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 10 900_228000369764      2020-08-17 04:42:39 upstream_A1   U        </span></span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;    last_DET            last_LOC      last_DIR tdiff_sec     tdiff_day</span></span>
+<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;    &lt;dttm&gt;              &lt;chr&gt;         &lt;chr&gt;    &lt;drtn&gt;            &lt;dbl&gt;</span></span>
+<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  1 2021-08-12 13:49:48 downstream_A1 D        34452990 secs     399. </span></span>
+<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  2 2020-08-10 17:57:55 upstream_A1   U            6772 secs       0.1</span></span>
+<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  3 2021-08-12 13:51:01 downstream_A1 D        31629959 secs     366. </span></span>
+<span id="cb14-20"><a href="#cb14-20" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  4 2021-08-12 13:51:18 downstream_A1 D        31623353 secs     366  </span></span>
+<span id="cb14-21"><a href="#cb14-21" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  5 2020-09-11 04:15:00 downstream_A1 D         2519468 secs      29.2</span></span>
+<span id="cb14-22"><a href="#cb14-22" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  6 2020-08-13 03:03:13 upstream_A1   U               0 secs       0  </span></span>
+<span id="cb14-23"><a href="#cb14-23" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  7 2020-09-14 21:27:48 downstream_A1 D         2828489 secs      32.7</span></span>
+<span id="cb14-24"><a href="#cb14-24" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  8 2020-08-15 21:43:42 upstream_A1   U               0 secs       0  </span></span>
+<span id="cb14-25"><a href="#cb14-25" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  9 2020-09-19 23:29:18 downstream_A1 D         3024518 secs      35  </span></span>
+<span id="cb14-26"><a href="#cb14-26" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 10 2020-09-16 22:10:06 downstream_A1 D         2654847 secs      30.7</span></span>
+<span id="cb14-27"><a href="#cb14-27" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; # … with 45 more rows</span></span></code></pre></div>
+<p><code>ant_efficiency</code> is used to determine the efficiency for
+each antenna within a directional array. As with
+<code>tag_direction</code>, a vector is required that describes the
+order of locations an individual encounters along a linear migration
+route. Efficiency is calculated as the number of shared detections at
+location x and at any location after x, divided by the number of
+detections after location x. Efficiency cannot be calculated for the
+final antenna as there are no subsequent detections. Reversing the order
+of the location vector can inform efficiency in systems with movement in
+multiple directions.</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ant_efficiency</span>(dat_multi, <span class="at">LOC_vec =</span> <span class="fu">c</span>(<span class="st">&quot;downstream_A1&quot;</span>, <span class="st">&quot;upstream_A1&quot;</span>))</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;             LOC LOC_NUM shared_tags tags_above det_eff</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1 downstream_A1       1          55         59    0.93</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 2   upstream_A1       2           0          0     NaN</span></span></code></pre></div>
+</div>
+<div id="export-data" class="section level2">
+<h2>Export data</h2>
+<p>Any data frame created using ORFID functions can be exported to the
+working directory as a .csv or .xlsx file.</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">export_ORFID</span>(<span class="at">x =</span> dat_multi, <span class="at">name =</span> <span class="st">&quot;multi_data_compiled&quot;</span>, <span class="at">extension =</span> <span class="st">&quot;.xlsx&quot;</span>)</span></code></pre></div>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
